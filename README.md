@@ -73,10 +73,10 @@ Reference C result: `134.872794645111`
 
 | Kernel | Result | Correctness | Average Time (s) |
 |---|---:|---|---:|
-| C | 134.872794645111 | PASS | 0.000845 |
-| x86-64 Assembly | 134.872794645111 | PASS | 0.000836 |
-| SIMD XMM | 134.872794645113 | PASS | 0.000511 |
-| SIMD YMM | 134.872794645121 | PASS | 0.000368 |
+| C | 134.872794645111 | PASS | 0.000935820 |
+| x86-64 Assembly | 134.872794645111 | PASS | 0.000893823 |
+| SIMD XMM | 134.872794645113 | PASS | 0.000602657 |
+| SIMD YMM | 134.872794645121 | PASS | 0.000385100 |
 
 ### Test Case 2: Vector Size = 67,108,864
 
@@ -84,10 +84,10 @@ Reference C result: `-585.732854649973`
 
 | Kernel | Result | Correctness | Average Time (s) |
 |---|---:|---|---:|
-| C | -585.732854649973 | PASS | 0.054842 |
-| x86-64 Assembly | -585.732854649973 | PASS | 0.055070 |
-| SIMD XMM | -585.732854650150 | PASS | 0.038542 |
-| SIMD YMM | -585.732854650142 | PASS | 0.033942 |
+| C | -585.732854649973 | PASS | 0.057101760 |
+| x86-64 Assembly | -585.732854649973 | PASS | 0.055515197 |
+| SIMD XMM | -585.732854650150 | PASS | 0.039002567 |
+| SIMD YMM | -585.732854650142 | PASS | 0.034083980 |
 
 ### Test Case 3: Vector Size = 268,435,456
 
@@ -95,10 +95,10 @@ Reference C result: `72.826491389550`
 
 | Kernel | Result | Correctness | Average Time (s) |
 |---|---:|---|---:|
-| C | 72.826491389550 | PASS | 0.224464 |
-| x86-64 Assembly | 72.826491389550 | PASS | 0.221635 |
-| SIMD XMM | 72.826491389638 | PASS | 0.156028 |
-| SIMD YMM | 72.826491389353 | PASS | 0.136155 |
+| C | 72.826491389550 | PASS | 0.223503003 |
+| x86-64 Assembly | 72.826491389550 | PASS | 0.221395230 |
+| SIMD XMM | 72.826491389638 | PASS | 0.170132387 |
+| SIMD YMM | 72.826491389353 | PASS | 0.150384397 |
 
 ### Boundary Test: Vector Size = 1,003
 
@@ -125,19 +125,17 @@ A value greater than 1 means the kernel is faster than C.
 
 | Vector Size | x86-64 Assembly | SIMD XMM | SIMD YMM |
 |---:|---:|---:|---:|
-| 1,048,576 | 1.01× | 1.65× | 2.30× |
-| 67,108,864 | 1.00×* | 1.42× | 1.62× |
-| 268,435,456 | 1.01× | 1.44× | 1.65× |
-
-*For the medium vector, the x86-64 assembly implementation was slightly slower than C, at approximately 0.996× the C performance.
+| 1,048,576 | 1.05× | 1.55× | 2.43× |
+| 67,108,864 | 1.03× | 1.46× | 1.67× |
+| 268,435,456 | 1.01× | 1.31× | 1.49× |
 
 ### 4.2 Speedup Relative to Non-SIMD x86-64 Assembly
 
 | Vector Size | SIMD XMM | SIMD YMM |
 |---:|---:|---:|
-| 1,048,576 | 1.64× | 2.27× |
-| 67,108,864 | 1.43× | 1.62× |
-| 268,435,456 | 1.42× | 1.63× |
+| 1,048,576 | 1.48× | 2.32× |
+| 67,108,864 | 1.42× | 1.63× |
+| 268,435,456 | 1.30× | 1.47× |
 
 ### 4.3 Performance Observations
 
@@ -149,11 +147,11 @@ This suggests that the compiler generated efficient machine code for the C imple
 
 **SIMD XMM**
 
-The XMM implementation was approximately 1.42–1.65 times faster than C. A 128-bit XMM register can process two double-precision values in parallel using packed floating-point instructions, reducing the number of scalar operations and loop iterations required.
+The XMM implementation was approximately 1.31–1.55 times faster than C. A 128-bit XMM register can process two double-precision values in parallel using packed floating-point instructions, reducing the number of scalar operations and loop iterations required.
 
 **SIMD YMM**
 
-The YMM implementation achieved the shortest execution time in every test. It was approximately 1.62–2.30 times faster than C and 1.62–2.27 times faster than non-SIMD assembly.
+The YMM implementation achieved the shortest execution time in every test. It was approximately 1.49–2.43 times faster than C and 1.47–2.32 times faster than non-SIMD assembly.
 
 A 256-bit YMM register can hold four double-precision values, allowing more elements to be processed per packed operation. However, the actual speedup also depends on memory bandwidth, instruction scheduling, and reduction overhead.
 
@@ -213,8 +211,6 @@ The YMM implementation was the fastest in the reported measurements, but an opti
 
 SIMD improves the potential parallelism of the computation, but the realized speedup depends on whether the processor is limited by arithmetic throughput or memory bandwidth. When memory bandwidth becomes the limiting factor, wider SIMD instructions cannot guarantee a proportional speedup.
 
-To make a fair comparison, all implementations should be tested under the same compiler optimization settings, with the same input data, equivalent timing methods, and appropriate correctness tolerances.
-
 ## 8. Why the Speedup Is Not Equal to Theoretical SIMD Speedup
 
 Although YMM registers can process twice as many double-precision elements per instruction as XMM registers, the measured speedup is not necessarily 2×.
@@ -239,18 +235,18 @@ Debug builds generally use fewer compiler optimizations, while Release builds en
 
 | Vector Size | Kernel | Debug (s) | Release (s) | Speedup |
 |---:|---|---:|---:|---:|
-| 1,048,576 | C | 0.002958 | 0.000845 | 3.50× |
-| | x86-64 | 0.000882 | 0.000836 | 1.06× |
-| | SIMD XMM | 0.000519 | 0.000511 | 1.02× |
-| | SIMD YMM | 0.000397 | 0.000368 | 1.08× |
-| 67,108,864 | C | 0.192386 | 0.054842 | 3.51× |
-| | x86-64 | 0.058786 | 0.055070 | 1.07× |
-| | SIMD XMM | 0.041537 | 0.038542 | 1.08× |
-| | SIMD YMM | 0.035840 | 0.033942 | 1.06× |
-| 268,435,456 | C | 0.765023 | 0.224464 | 3.41× |
-| | x86-64 | 0.236492 | 0.221635 | 1.07× |
-| | SIMD XMM | 0.168705 | 0.156028 | 1.08× |
-| | SIMD YMM | 0.144646 | 0.136155 | 1.06× |
+| 1,048,576 | C | 0.002966557 | 0.000841923 | 3.52× |
+| | x86-64 | 0.000863783 | 0.000850107 | 1.02× |
+| | SIMD XMM | 0.000497173 | 0.000493090 | 1.01× |
+| | SIMD YMM | 0.000357833 | 0.000373297 | 0.96× |
+| 67,108,864 | C | 0.188031313 | 0.054689203 | 3.44× |
+| | x86-64 | 0.055237613 | 0.055416963 | 1.00× |
+| | SIMD XMM | 0.038543723 | 0.038197443 | 1.01× |
+| | SIMD YMM | 0.032847957 | 0.033658490 | 0.98× |
+| 268,435,456 | C | 0.765801167 | 0.218907633 | 3.50× |
+| | x86-64 | 0.223754513 | 0.220741410 | 1.01× |
+| | SIMD XMM | 0.157990973 | 0.154524207 | 1.02× |
+| | SIMD YMM | 0.134291443 | 0.142216667 | 0.94× |
 
 *Speedup = Debug time / Release time.*
 
@@ -258,11 +254,9 @@ Debug builds generally use fewer compiler optimizations, while Release builds en
 
 The C implementation improved by approximately 3.4–3.5× in Release mode, showing the significant impact of compiler optimizations. The assembly kernels improved by only about 1.02–1.08×.
 
-SIMD YMM remained the fastest implementation in both configurations. For the largest vector size, it completed in 0.136155 seconds, approximately 1.65× faster than Release C.
+SIMD YMM remained the fastest implementation in both configurations. For the largest vector size, it completed in 0.142216667 seconds, approximately 1.65× faster than Release C.
 
 Overall, Release optimization allowed C to approach scalar assembly performance, while SIMD provided additional speedup.
-
-*Note: This comparison assumes the earlier measurements were collected in Debug mode and the latest measurements in Release mode. Verify the configurations before submission.*
 
 ## 10. Required Output Screenshots
 
@@ -272,11 +266,11 @@ Overall, Release optimization allowed C to approach scalar assembly performance,
 
 ### 10.2 C Kernel Correctness
 
-![C kernel correctness output](screenshots/C_correctness.png)
+![C kernel correctness output](screenshots/c-correctness.png)
 
 ### 10.3 x86-64 Assembly Correctness
 
-![x86-64 assembly correctness output](screenshots/x64-86_correctness.png)
+![x86-64 assembly correctness output](screenshots/x86-64_correctness.png)
 
 ### 10.4 SIMD XMM Correctness
 
@@ -293,7 +287,7 @@ Overall, Release optimization allowed C to approach scalar assembly performance,
 
 ## 11. Conclusion
 
-Based on the supplied benchmark results, the SIMD YMM implementation achieved the shortest execution time for all three main vector sizes. SIMD XMM was the second-fastest, followed by non-SIMD x86-64 assembly and C.
+Based on the benchmark results, the SIMD YMM implementation achieved the shortest execution time for all three main vector sizes. SIMD XMM was the second-fastest, followed by non-SIMD x86-64 assembly and C.
 
 For the largest vector size, YMM completed the kernel in 0.144646 seconds, compared with 0.168705 seconds for XMM, 0.236492 seconds for non-SIMD assembly, and 0.765023 seconds for C.
 
