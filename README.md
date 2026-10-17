@@ -42,14 +42,14 @@ The boundary test uses a vector size that is not evenly divisible by the number 
 
 ### Data Initialization
 
-The vectors were initialized with double-precision floating-point values. The exact initialization formula used in the program should be documented here.
+The vectors were initialized with double-precision floating-point values.
 
 Example initialization:
 
 ```c
-for (int i = 0; i < n; i++) {
-    A[i] = sin(i * 0.001);
-    B[i] = cos(i * 0.002);
+for (i = 0; i < n; i++) {
+    A[i] = sin((double)i * 0.001);
+    B[i] = cos((double)i * 0.002);
 }
 ```
 
